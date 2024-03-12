@@ -1,20 +1,21 @@
-FROM ubuntu:18.04
+# Fetch ubuntu 22.04 LTS docker image
+FROM ubuntu:22.04
 
-ARG STORM_VERSION=apache-storm-1.2.4
+ARG STORM_VERSION=apache-storm-2.6.1
 ARG STORM_DOWNLOAD_URL=https://archive.apache.org/dist/storm/$STORM_VERSION/$STORM_VERSION.tar.gz
 
-ARG REDIS_VERSION=redis-5.0.7
+ARG REDIS_VERSION=redis-5.0.14
 ARG REDIS_DOWNLOAD_URL=http://download.redis.io/releases/$REDIS_VERSION.tar.gz
 
 ENV DEBIAN_FRONTEND noninteractive
-RUN \
-  apt-get update; \
-  apt-get install -y --no-install-recommends \
-  	vim maven expect zip unzip openjdk-8-jdk git \
-  python python3-pip python3-dev python3-setuptools; \
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends \
+  	vim maven expect zip unzip openjdk-21-jdk; \
+	python python-setuptools; \
+  python3-pip python3-dev; \
   cd /usr/local/bin; \
-  ln -s /usr/bin/python3 python; \
   rm -rf /var/cache/apt /var/lib/apt/lists
+
 
 # Descript this!
 RUN set -ex; \
@@ -23,7 +24,11 @@ RUN set -ex; \
   	wget \
 	gcc \
 	make \
-	python-pip python-setuptools python-dev \
+	maven \
+	python3 \
+	python3-dev\
+	python3-pip\
+	python-setuptools\
   '; \
   apt-get update; \
   apt-get install -y --no-install-recommends $buildDeps; \
@@ -42,6 +47,9 @@ RUN set -ex; \
   ln -s ./$REDIS_VERSION redis; \
   rm -rf /usr/local/$REDIS_VERSION.tar.gz; \
   \
+  ln -s /usr/bin/python3 /bin/python;\
+  
+  
 # https://github.com/docker-library/redis
 # disable Redis protected mode [1] as it is unnecessary in context of Docker
 # (ports are not automatically exposed when running inside Docker, but rather explicitly by specifying -p / -P)
@@ -55,16 +63,12 @@ RUN set -ex; \
   \
   rm /usr/local/redis; \
   rm -r /usr/local/$REDIS_VERSION; \
-  \
-  pip install storm redis; \
-  pip3 install storm redis; \
-  \
-  apt-get purge -y --auto-remove $buildDeps
+  pip install redis storm
 
 COPY entrypoint.sh /mp11/entrypoint.sh
 COPY redis.conf /etc/redis/redis.conf
 
-ENV JAVA_HOME "/usr/lib/jvm/java-1.8.0-openjdk-amd64"
+ENV JAVA_HOME "/usr/lib/jvm/java-1.21.0-openjdk-amd64"
 ENV CLASS_PATH "/mp11/Jar/jedis.jar"
 ENV STORM_HOME "/usr/local/storm"
 ENV PATH "/usr/local/storm/bin:${PATH}"
