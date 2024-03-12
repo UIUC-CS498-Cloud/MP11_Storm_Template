@@ -7,22 +7,14 @@
   <packaging>jar</packaging>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <storm.version>1.2.4</storm.version>
+    <storm.version>2.6.1</storm.version>
   </properties>
-  <repositories>
-    <repository>
-      <id>clojars.org</id>
-      <url>http://clojars.org/repo</url>
-    </repository>
-  </repositories>
   <dependencies>
     <!-- https://mvnrepository.com/artifact/org.apache.storm/storm -->
     <dependency>
       <groupId>org.apache.storm</groupId>
       <artifactId>storm-core</artifactId>
       <version>${storm.version}</version>
-      <!-- keep storm out of the jar-with-dependencies -->
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.storm</groupId>
@@ -41,16 +33,26 @@
       <type>jar</type>
     </dependency>
   </dependencies>
+    <!-- upgrade clojure.tools.logging for jdk compatibility-->
+    <dependencyManagement>
+    <dependencies>
+	  <dependency>
+		  <groupId>org.clojure</groupId>
+		  <artifactId>tools.logging</artifactId>
+          <version>1.3.0</version>
+	  </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <build>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.3</version>
+        <version>3.12.1</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <release>21</release>
         </configuration>
       </plugin>
       <plugin>
@@ -75,6 +77,7 @@
                 <exclude>META-INF/*.SF</exclude>
                 <exclude>META-INF/*.DSA</exclude>
                 <exclude>META-INF/*.RSA</exclude>
+                <exclude>defaults.yaml</exclude>
               </excludes>
             </filter>
           </filters>
@@ -111,11 +114,19 @@
     </plugins>
     <resources>
       <resource>
-        <directory>${basedir}/src/main/resources</directory>
+	<directory>${basedir}/src/main/resources</directory>
         <filtering>false</filtering>
+        <!--<includes>-->
+          <!--
+                    Include configuration for Log4j
+                    to reduce the clutter in log output
+                    -->
+          <!--<include>log4j2.xml</include>-->
+          <!-- topology definition -->
+          <!--<include>topology.yaml</include>-->
+        <!--</includes>-->
       </resource>
-      <!-- include the Python components -->
-      <resource>
+	  <resource>
         <directory>${basedir}/multilang</directory>
         <filtering>false</filtering>
       </resource>
